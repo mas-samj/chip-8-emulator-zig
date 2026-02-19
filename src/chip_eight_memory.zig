@@ -31,7 +31,8 @@ const font_set: [80]u8 = [_]u8{
 
 pub const font_start_index: u12 = 0x50;
 
-pub fn fillFont() void {
+pub fn initalizeMem() void {
+    //loading font
     var mem_index: u12 = font_start_index;
     for (font_set) |font| {
         main_memory[mem_index] = font;

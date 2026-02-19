@@ -8,29 +8,25 @@ const c = @cImport({
 const chip_eight_memory = @import("chip_eight_memory.zig");
 
 pub fn main() !void {
-    //Start up and allocator
+    //Start up a general purpose allocator
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer std.debug.assert(gpa.deinit() == .ok);
     const allocator = gpa.allocator();
 
-    //TODO: move this shit elsewhere and pass in allocator
+    //TODO: move this elsewhere and pass in allocator
     //ITS THA STACK
     var main_stack = std.ArrayList(u16).init(allocator);
-    //temp so no error...
-    _ = main_stack.append(69);
+    _ = main_stack.append(69); //temp so no error...
 
-    chip_eight_memory.fillFont();
+    //initialize memory. now pub main_memory is ready to be used?
+    chip_eight_memory.initalizeMem();
 
     if (!initVidSDL())
-        complainAndExit();
+        sdlComplainAndExit();
     defer c.SDL_Quit();
 
-    const window = c.SDL_CreateWindow("Zig SDL Surface Example", c.SDL_WINDOWPOS_UNDEFINED, c.SDL_WINDOWPOS_UNDEFINED, 640, 480, c.SDL_WINDOW_SHOWN) orelse complainAndExit();
+    const window = c.SDL_CreateWindow("Zig SDL Surface Example", c.SDL_WINDOWPOS_UNDEFINED, c.SDL_WINDOWPOS_UNDEFINED, 640, 480, c.SDL_WINDOW_SHOWN) orelse sdlComplainAndExit();
     defer c.SDL_DestroyWindow(window);
-
-    // const screen = c.SDL_GetWindowSurface(window) orelse complainAndExit();
-
-    // _ = screen;
 
     std.debug.print("{}...{}\n", .{ chip_eight_memory.main_memory.len, chip_eight_memory.main_memory[0x53] });
 
@@ -49,7 +45,7 @@ pub fn initVidSDL() bool {
     return true;
 }
 
-fn complainAndExit() noreturn {
+fn sdlComplainAndExit() noreturn {
     std.debug.print("Problem: {s}\n", .{c.SDL_GetError()});
     std.process.exit(1);
 }
