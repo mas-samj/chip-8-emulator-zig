@@ -7,6 +7,7 @@ const SDL2 = @cImport({
 
 const chip_eight_memory = @import("chip_eight_memory.zig");
 const chip_eight_display = @import("chip_eight_display.zig");
+const chip_eight_timer = @import("chip_eight_timer.zig");
 
 pub fn main() !void {
     //Start up a general purpose allocator
@@ -37,37 +38,20 @@ pub fn main() !void {
     std.debug.print("bye...\n", .{});
 }
 
-const time = std.time;
+pub const Stack = struct {
+    arena: std.heap.ArenaAllocator,
+    stack: std.ArrayList(u16),
 
-const decrement_frequency: u8 = 60; //Hz
-const decrement_ms = 1000 / decrement_frequency;
-
-pub const DelayTimer = struct {
-    time_value: u8,
-    running: bool,
-    done: bool,
-    start_time: i64,
-
-    pub fn initTimer(initialValue: u8) !DelayTimer {
-        return DelayTimer{
-            .time_value = initialValue,
-            .running = false,
-            .done = false,
-            .start_time = 0,
+    pub fn init() Stack {
+        var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+        const stack = std.ArrayList(u16).init(arena.allocator());
+        return Stack{
+            .arena = arena,
+            .stack = stack,
         };
     }
 
-    pub fn start(self: *DelayTimer) void {
-        if (self.running) return;
-        self.running = true;
-        self.start_time = time.milliTimestamp();
-        while (!self.done) {
-            const cur_time = time.milliTimestamp();
-            if ((cur_time - self.start_time) >= decrement_ms) {
-                self.time_value -= 1;
-                if (self.time_value == 0)
-                    self.done = true;
-            }
-        }
+    pub fn deinit(self: *Stack) void {
+        self.arena.deinit();
     }
 };
