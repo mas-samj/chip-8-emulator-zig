@@ -35,8 +35,6 @@ pub const Display = struct {
         ) orelse return error.RendererCreationFailed;
         errdefer SDL2.SDL_DestroyRenderer(renderer);
 
-        // We store one u32 ARGB value per Chip-8 pixel.
-        // SDL scales this 64x32 texture up to the full window for us.
         const texture = SDL2.SDL_CreateTexture(
             renderer,
             SDL2.SDL_PIXELFORMAT_ARGB8888,
@@ -63,7 +61,6 @@ pub const Display = struct {
     pub fn draw(self: *Display, pixels: []const bool) !void {
         std.debug.assert(pixels.len == CHIP8_WIDTH * CHIP8_HEIGHT);
 
-        // Lock texture to get a direct pointer into its pixel buffer
         var raw_pixels: ?*anyopaque = null;
         var pitch: c_int = 0;
         if (SDL2.SDL_LockTexture(self.texture, null, &raw_pixels, &pitch) < 0)
@@ -76,7 +73,6 @@ pub const Display = struct {
 
         SDL2.SDL_UnlockTexture(self.texture);
 
-        // Clear, copy scaled texture to window, present
         _ = SDL2.SDL_RenderClear(self.renderer);
         _ = SDL2.SDL_RenderCopy(self.renderer, self.texture, null, null);
         SDL2.SDL_RenderPresent(self.renderer);

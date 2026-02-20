@@ -10,15 +10,11 @@ const chip_eight_display = @import("chip_eight_display.zig");
 
 pub fn main() !void {
     //Start up a general purpose allocator
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer std.debug.assert(gpa.deinit() == .ok);
-    const allocator = gpa.allocator();
+    // var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    // defer std.debug.assert(gpa.deinit() == .ok);
+    // const allocator = gpa.allocator();
 
-    _ = allocator;
-
-    //TODO: move this elsewhere and pass in allocator
-    // var main_stack = std.ArrayList(u16).init(allocator);
-    // _ = main_stack.append(69); //temp so no error...
+    // _ = allocator;
 
     //initialize memory. now pub main_memory is ready to be used?
     chip_eight_memory.initalizeMem();
@@ -28,7 +24,7 @@ pub fn main() !void {
 
     var pixels = [_]bool{false} ** (chip_eight_display.CHIP8_WIDTH * chip_eight_display.CHIP8_HEIGHT);
     var i: usize = 0;
-    while (i < pixels.len) : (i += 2) pixels[i] = true;
+    while (i < pixels.len) : (i += 4) pixels[i] = true;
 
     var event: SDL2.SDL_Event = undefined;
     while (true) {
@@ -40,3 +36,38 @@ pub fn main() !void {
 
     std.debug.print("bye...\n", .{});
 }
+
+const time = std.time;
+
+const decrement_frequency: u8 = 60; //Hz
+const decrement_ms = 1000 / decrement_frequency;
+
+pub const DelayTimer = struct {
+    time_value: u8,
+    running: bool,
+    done: bool,
+    start_time: i64,
+
+    pub fn initTimer(initialValue: u8) !DelayTimer {
+        return DelayTimer{
+            .time_value = initialValue,
+            .running = false,
+            .done = false,
+            .start_time = 0,
+        };
+    }
+
+    pub fn start(self: *DelayTimer) void {
+        if (self.running) return;
+        self.running = true;
+        self.start_time = time.milliTimestamp();
+        while (!self.done) {
+            const cur_time = time.milliTimestamp();
+            if ((cur_time - self.start_time) >= decrement_ms) {
+                self.time_value -= 1;
+                if (self.time_value == 0)
+                    self.done = true;
+            }
+        }
+    }
+};

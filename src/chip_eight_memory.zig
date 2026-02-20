@@ -1,7 +1,7 @@
 const std = @import("std");
 
 // 4096 byes large
-//p.c. 12 bits
+// p.c. 12 bits
 // all mem is considered writable
 
 pub var program_counter: u12 = 0;
