@@ -1,11 +1,12 @@
 const std = @import("std");
 const chip_eight_emulator = @import("chip_eight_emulator");
 //graphics
-const c = @cImport({
+const SDL2 = @cImport({
     @cInclude("SDL2/SDL.h");
 });
 
 const chip_eight_memory = @import("chip_eight_memory.zig");
+const chip_eight_display = @import("chip_eight_display.zig");
 
 pub fn main() !void {
     //Start up a general purpose allocator
@@ -13,39 +14,29 @@ pub fn main() !void {
     defer std.debug.assert(gpa.deinit() == .ok);
     const allocator = gpa.allocator();
 
+    _ = allocator;
+
     //TODO: move this elsewhere and pass in allocator
-    //ITS THA STACK
-    var main_stack = std.ArrayList(u16).init(allocator);
-    _ = main_stack.append(69); //temp so no error...
+    // var main_stack = std.ArrayList(u16).init(allocator);
+    // _ = main_stack.append(69); //temp so no error...
 
     //initialize memory. now pub main_memory is ready to be used?
     chip_eight_memory.initalizeMem();
 
-    if (!initVidSDL())
-        sdlComplainAndExit();
-    defer c.SDL_Quit();
+    var display = try chip_eight_display.Display.init("Chip-8", 10);
+    defer display.deinit();
 
-    const window = c.SDL_CreateWindow("Zig SDL Surface Example", c.SDL_WINDOWPOS_UNDEFINED, c.SDL_WINDOWPOS_UNDEFINED, 640, 480, c.SDL_WINDOW_SHOWN) orelse sdlComplainAndExit();
-    defer c.SDL_DestroyWindow(window);
+    var pixels = [_]bool{false} ** (chip_eight_display.CHIP8_WIDTH * chip_eight_display.CHIP8_HEIGHT);
+    var i: usize = 0;
+    while (i < pixels.len) : (i += 2) pixels[i] = true;
 
-    std.debug.print("{}...{}\n", .{ chip_eight_memory.main_memory.len, chip_eight_memory.main_memory[0x53] });
-
-    std.debug.print("bye...\n", .{});
-}
-
-pub fn initVidSDL() bool {
-    std.debug.print("Initializing SDL.\n", .{});
-
-    if (c.SDL_Init(c.SDL_INIT_VIDEO) < 0) {
-        std.debug.print("Could not initialize SDL: {s}.\n", .{c.SDL_GetError()});
-        return false;
+    var event: SDL2.SDL_Event = undefined;
+    while (true) {
+        while (SDL2.SDL_PollEvent(&event) != 0) {
+            if (event.type == SDL2.SDL_QUIT) return;
+        }
+        try display.draw(&pixels);
     }
 
-    std.debug.print("SDL initialized.\n", .{});
-    return true;
-}
-
-fn sdlComplainAndExit() noreturn {
-    std.debug.print("Problem: {s}\n", .{c.SDL_GetError()});
-    std.process.exit(1);
+    std.debug.print("bye...\n", .{});
 }
