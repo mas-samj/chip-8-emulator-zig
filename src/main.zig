@@ -44,7 +44,7 @@ pub const Stack = struct {
 
     pub fn init() Stack {
         var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-        const stack = std.ArrayList(u16).init(arena.allocator());
+        const stack = std.ArrayListUnmanaged(u16).initCapacity(arena.allocator(), usize);
         return Stack{
             .arena = arena,
             .stack = stack,
@@ -53,5 +53,18 @@ pub const Stack = struct {
 
     pub fn deinit(self: *Stack) void {
         self.arena.deinit();
+    }
+
+    pub fn push(self: *Stack, item: u16) bool {
+        try self.stack.append(self.arena.allocator(), item);
+        return false;
+    }
+
+    pub fn pop(self: *Stack) !u16 {
+        const item = self.stack.pop();
+        if (item) {
+            return item;
+        }
+        return error.YOUStink;
     }
 };
