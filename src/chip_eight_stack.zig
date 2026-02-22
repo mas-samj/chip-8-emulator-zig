@@ -2,7 +2,7 @@ const std = @import("std");
 
 pub const Stack = struct {
     arena: std.heap.ArenaAllocator,
-    stack: std.ArrayList(u16),
+    stack: std.ArrayListUnmanaged(u16),
 
     pub fn init() Stack {
         var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);

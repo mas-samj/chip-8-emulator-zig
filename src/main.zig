@@ -8,6 +8,7 @@ const SDL2 = @cImport({
 const chip_eight_memory = @import("chip_eight_memory.zig");
 const chip_eight_display = @import("chip_eight_display.zig");
 const chip_eight_timer = @import("chip_eight_timer.zig");
+const chip_eight_stack = @import("chip_eight_stack.zig");
 
 pub fn main() !void {
     //initialize memory. now pub main_memory is ready to be used?
@@ -26,6 +27,7 @@ pub fn main() !void {
             if (event.type == SDL2.SDL_QUIT) return;
         }
         try display.draw(&pixels);
+        //emulate that thang
     }
 
     std.debug.print("bye...\n", .{});
