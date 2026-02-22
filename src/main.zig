@@ -10,13 +10,6 @@ const chip_eight_display = @import("chip_eight_display.zig");
 const chip_eight_timer = @import("chip_eight_timer.zig");
 
 pub fn main() !void {
-    //Start up a general purpose allocator
-    // var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    // defer std.debug.assert(gpa.deinit() == .ok);
-    // const allocator = gpa.allocator();
-
-    // _ = allocator;
-
     //initialize memory. now pub main_memory is ready to be used?
     chip_eight_memory.initalizeMem();
 
@@ -37,34 +30,3 @@ pub fn main() !void {
 
     std.debug.print("bye...\n", .{});
 }
-
-pub const Stack = struct {
-    arena: std.heap.ArenaAllocator,
-    stack: std.ArrayList(u16),
-
-    pub fn init() Stack {
-        var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-        const stack = std.ArrayListUnmanaged(u16).initCapacity(arena.allocator(), usize);
-        return Stack{
-            .arena = arena,
-            .stack = stack,
-        };
-    }
-
-    pub fn deinit(self: *Stack) void {
-        self.arena.deinit();
-    }
-
-    pub fn push(self: *Stack, item: u16) bool {
-        try self.stack.append(self.arena.allocator(), item);
-        return false;
-    }
-
-    pub fn pop(self: *Stack) !u16 {
-        const item = self.stack.pop();
-        if (item) {
-            return item;
-        }
-        return error.YOUStink;
-    }
-};
