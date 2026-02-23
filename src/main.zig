@@ -10,16 +10,21 @@ const chip_eight_display = @import("chip_eight_display.zig");
 const chip_eight_timer = @import("chip_eight_timer.zig");
 const chip_eight_stack = @import("chip_eight_stack.zig");
 
+const clock_speed = 700; //Hz
+
 pub fn main() !void {
-    //initialize memory. now pub main_memory is ready to be used?
-    chip_eight_memory.initalizeMem();
+    // const memory = chip_eight_memory.Memory.initMemory();
 
     var display = try chip_eight_display.Display.init("Chip-8", 10);
     defer display.deinit();
 
+    var clock: chip_eight_timer.ClockTimer = chip_eight_timer.ClockTimer.init(clock_speed);
+
     var pixels = [_]bool{false} ** (chip_eight_display.CHIP8_WIDTH * chip_eight_display.CHIP8_HEIGHT);
     var i: usize = 0;
     while (i < pixels.len) : (i += 4) pixels[i] = true;
+
+    clock.start();
 
     var event: SDL2.SDL_Event = undefined;
     while (true) {
